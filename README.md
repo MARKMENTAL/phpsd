@@ -30,6 +30,7 @@ Common features across both versions:
 
 - PHP 8+ (Tested on frankenphp running on Debian 12, should also run with traditional PHP setups with apache/nginx)
 - ImageMagick for image optimization
+- Curl
 - Running instance of AUTOMATIC1111's Stable Diffusion WebUI with API access enabled
 - Web server (Apache, nginx, etc.)
 
