@@ -74,6 +74,18 @@ Example:
 - `legacy.php` strips down the interface to basic HTML 3.2 for maximum compatibility with vintage systems and browsers
 - Both achieve the same core functionality with different levels of visual polish
 
+## Screenshots
+
+### Running on Windows NT 4.0 With IE 4
+![Screenshot 2024-12-14 142743](https://github.com/user-attachments/assets/838095cb-0af7-4c6e-a140-78e8f7c65691)
+
+
+
+### Running on Firefox ESR 115
+![Screenshot 2024-12-14 143036](https://github.com/user-attachments/assets/9745d00f-57cc-4788-a17d-43782d7e6fa3)
+
+
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or fork.
