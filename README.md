@@ -1,6 +1,6 @@
 # Legacy Stable Diffusion WebUI
 
-A minimalistic, JavaScript-free web interface and processing server for Stable Diffusion, designed specifically for being accessed by legacy systems and browsers. This interface relies on the API from AUTOMATIC1111's Stable Diffusion WebUI.
+A minimalistic, JavaScript-free web interface, front-end and processing server for Stable Diffusion, designed specifically for being accessed by legacy systems and browsers as clients. This interface relies on the API from AUTOMATIC1111's Stable Diffusion WebUI.
 
 ## Features
 
@@ -28,11 +28,13 @@ Common features across both versions:
 
 ## Requirements
 
-- PHP 8+ (Tested on frankenphp running on Debian 12, should also run with traditional PHP setups with apache/nginx)
+- Linux server with a suitable GPU; running a model in AUTOMATIC1111's Stable Diffusion WebUI https://github.com/AUTOMATIC1111/stable-diffusion-webui with API access (image generation back-end)
+- Externally accessible Linux server running PHP 8+ to run the PHP front-end (Tested on frankenphp running on Debian 12, should also run with traditional PHP setups with apache/nginx, can run on the same server as the back-end)
+- Web server (Apache, nginx, etc.)
 - ImageMagick for image optimization
 - Curl
-- Running instance of AUTOMATIC1111's Stable Diffusion WebUI with API access enabled
-- Web server (Apache, nginx, etc.)
+- Client machine to access the front-end via web browser
+
 
 ## Installation
 
