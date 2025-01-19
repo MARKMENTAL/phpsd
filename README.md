@@ -13,7 +13,8 @@ A minimalistic, JavaScript-free web interface, front-end and processing server f
   - Sampling steps
   - CFG Scale
   - Choice of sampling methods
-  - Negative Prompt Support (1-19-2025 Update)
+  - Negative prompt support (1-19-2025 Update)
+  - Optimized default parameters for better quality images by default (1-19-2025 Update)
 
 ## Browser Compatibility
 
