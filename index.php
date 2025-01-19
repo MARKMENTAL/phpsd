@@ -5,11 +5,12 @@ header('Content-Type: text/html; charset=iso-8859-1');
 $response = "";
 $generated_image = "";
 $prompt = "";
-$width = 512;
-$height = 512;
-$steps = 20;
-$cfg_scale = 7.5;
-$sampler = "Euler";
+$negative_prompt = "";
+$width = 768;
+$height = 768;
+$steps = 35;
+$cfg_scale = 3;
+$sampler = "DPM++ 3M SDE";
 $error_message = "";
 $success_message = "";
 
@@ -27,10 +28,13 @@ function loadSavedPrompts() {
 }
 
 // Save a new prompt
-function savePrompt($prompt_text, $prompt_name) {
+function savePrompt($prompt_text, $negative_prompt_text, $prompt_name) {
     global $saved_prompts_file;
     $prompts = loadSavedPrompts();
-    $prompts[$prompt_name] = $prompt_text;
+    $prompts[$prompt_name] = array(
+        'prompt' => $prompt_text,
+        'negative_prompt' => $negative_prompt_text
+    );
     file_put_contents($saved_prompts_file, json_encode($prompts, JSON_PRETTY_PRINT));
 }
 
@@ -39,7 +43,7 @@ $saved_prompts = loadSavedPrompts();
 // List of available samplers
 $samplers = array(
     "Euler",
-    "Euler a", 
+    "Euler a",
     "Heun",
     "DPM2",
     "DPM2 a",
@@ -52,29 +56,32 @@ $samplers = array(
     "DPM adaptive",
     "LMS",
     "DPM++ SDE Karras",
-    "DPM++ 2M SDE Karras", 
+    "DPM++ 2M SDE Karras",
     "DPM++ 3M SDE Karras",
     "DDIM",
     "PLMS"
 );
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // All requests to the server to save or execute prompts will be POST requests to itself
     // Handle prompt saving
     if (isset($_POST['save_prompt']) && isset($_POST['prompt_name'])) {
         $prompt_to_save = trim($_POST['prompt']);
+        $negative_prompt_to_save = trim($_POST['negative_prompt']);
         $prompt_name = trim($_POST['prompt_name']);
-        
+
         if (!empty($prompt_to_save) && !empty($prompt_name)) {
-            savePrompt($prompt_to_save, $prompt_name);
+            savePrompt($prompt_to_save, $negative_prompt_to_save, $prompt_name);
             $success_message = "Prompt saved successfully!";
             $saved_prompts = loadSavedPrompts(); // Reload prompts
         } else {
             $error_message = "Both prompt and prompt name are required to save.";
         }
     }
-    // Handle image generation
+    // Handle image generation 
     else {
         $prompt = isset($_POST['prompt']) ? $_POST['prompt'] : '';
+        $negative_prompt = isset($_POST['negative_prompt']) ? $_POST['negative_prompt'] : '';
         $width = isset($_POST['width']) ? (int)$_POST['width'] : 512;
         $height = isset($_POST['height']) ? (int)$_POST['height'] : 512;
         $steps = isset($_POST['steps']) ? (int)$_POST['steps'] : 20;
@@ -92,6 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $data = array(
                 'prompt' => $processed_prompt,
+                'negative_prompt' => $negative_prompt,
                 'steps' => $steps,
                 'width' => $width,
                 'height' => $height,
@@ -101,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'override_settings_restore_afterwards' => true
             );
 
-	    // Replace 127.0.0.1 with your Stable diffusion server's IP if running externally
+            // Replace 127.0.0.1 with your Stable diffusion server's IP if running externally
             $ch = curl_init('http://127.0.0.1:7860/sdapi/v1/txt2img');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
@@ -114,66 +122,77 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $response = 'Error: ' . curl_error($ch);
             } else {
                 $decoded = json_decode($result, true);
-	        if (isset($decoded['images'][0])) {
-		    $image_data = base64_decode($decoded['images'][0]);
-		    
-		    // Save original PNG temporarily
-		    $temp_png = 'temp_' . time() . '_' . bin2hex(random_bytes(8)) . '.png';
-		    file_put_contents($temp_png, $image_data);
-		    
-		    // Create output JPG filename
-		    $generated_image = 'generated_' . time() . '_' . bin2hex(random_bytes(8)) . '.jpg';
-		    
-		    // Build ImageMagick convert command with optimization
-		    $quality = 85; // Balanced quality setting
-		    $cmd = "convert \"$temp_png\" -strip -interlace Plane -gaussian-blur 0.05 -quality $quality ";
-		    $cmd .= "-sampling-factor 4:2:0 \"$generated_image\" 2>&1";
-		    
-		    // Execute conversion
-		    $output = [];
-		    $returnVar = 0;
-		    exec($cmd, $output, $returnVar);
-		    
-		    if ($returnVar === 0 && file_exists($generated_image)) {
-			// Get file sizes for comparison
-			$originalSize = filesize($temp_png);
-			$convertedSize = filesize($generated_image);
-			
-			// Clean up temporary PNG file
-			if (file_exists($temp_png)) {
-			    unlink($temp_png);
-			}
-			
-			// Clean up old generated files
-			foreach (glob("generated_*.png") as $file) {
-			    if ($file != $generated_image && (time() - filemtime($file)) > 3600) {
-				unlink($file);
-			    }
-			}
-			
-			// Store size information for display
-			$size_info = array(
-			    'original' => round($originalSize / 1024, 2),
-			    'converted' => round($convertedSize / 1024, 2),
-			    'reduction' => round((($originalSize - $convertedSize) / $originalSize) * 100, 2)
-			);
-		    } else {
-			// If conversion fails, keep the original PNG
-			if (file_exists($temp_png)) {
-			    $generated_image = $temp_png;
-			}
-			$error_message = "Image conversion failed. Using original PNG format.";
-		    }
-		}
+                if (isset($decoded['images'][0])) {
+                    $image_data = base64_decode($decoded['images'][0]);
+
+                    // Save original PNG temporarily
+                    $temp_png = 'temp_' . time() . '_' . bin2hex(random_bytes(8)) . '.png';
+                    file_put_contents($temp_png, $image_data);
+
+                    // Create output JPG filename
+                    $generated_image = 'generated_' . time() . '_' . bin2hex(random_bytes(8)) . '.jpg';
+
+                    // Build ImageMagick convert command with optimization
+                    $quality = 85; // Balanced quality setting
+                    $cmd = "convert \"$temp_png\" -strip -interlace Plane -gaussian-blur 0.05 -quality $quality ";
+                    $cmd .= "-sampling-factor 4:2:0 \"$generated_image\" 2>&1";
+
+                    // Execute conversion
+                    $output = [];
+                    $returnVar = 0;
+                    exec($cmd, $output, $returnVar);
+
+                    if ($returnVar === 0 && file_exists($generated_image)) {
+                        // Get file sizes for comparison
+                        $originalSize = filesize($temp_png);
+                        $convertedSize = filesize($generated_image);
+
+                        // Clean up temporary PNG file
+                        if (file_exists($temp_png)) {
+                            unlink($temp_png);
+                        }
+
+                        // Clean up old generated files
+                        foreach (glob("generated_*.png") as $file) {
+                            if ($file != $generated_image && (time() - filemtime($file)) > 3600) {
+                                unlink($file);
+                            }
+                        }
+
+                        // Store size information for display
+                        $size_info = array(
+                            'original' => round($originalSize / 1024, 2),
+                            'converted' => round($convertedSize / 1024, 2),
+                            'reduction' => round((($originalSize - $convertedSize) / $originalSize) * 100, 2)
+                        );
+                    } else {
+                        // If conversion fails, keep the original PNG
+                        if (file_exists($temp_png)) {
+                            $generated_image = $temp_png;
+                        }
+                        $error_message = "Image conversion failed. Using original PNG format.";
+                    }
+                }
             }
 
             curl_close($ch);
         }
     }
 } else if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['load_prompt'])) {
+    // For loading prompts we use GET method to send the client's choice of prompt to load
     // Load saved prompt into textarea
     $saved_prompts = loadSavedPrompts();
-    $prompt = isset($saved_prompts[$_GET['load_prompt']]) ? $saved_prompts[$_GET['load_prompt']] : '';
+    if (isset($saved_prompts[$_GET['load_prompt']])) {
+        // Check if the saved prompt is in the new format (array) or old format (string)
+        if (is_array($saved_prompts[$_GET['load_prompt']])) {
+            $prompt = $saved_prompts[$_GET['load_prompt']]['prompt'];
+            $negative_prompt = $saved_prompts[$_GET['load_prompt']]['negative_prompt'];
+        } else {
+            // Handle old format
+            $prompt = $saved_prompts[$_GET['load_prompt']];
+            $negative_prompt = '';
+        }
+    }
 }
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -188,10 +207,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin: 10px 0;
             border: 1px solid #ddd;
         }
-        .lora-help code {
-            background-color: #eee;
-            padding: 2px 4px;
-        }
         .form-group {
             margin-bottom: 15px;
         }
@@ -202,6 +217,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-family: Arial, sans-serif;
             font-size: 14px;
             border: 1px solid #ddd;
+        }
+        textarea#negative_prompt {
+            width: 100%;
+            height: 100px;
+            padding: 8px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            background-color: #fff3f3;
         }
         .error-message {
             color: #dc3545;
@@ -260,7 +284,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <select name="load_prompt">
                 <option value="">Select a saved prompt</option>
                 <?php foreach ($saved_prompts as $name => $saved_prompt): ?>
-                    <option value="<?php echo htmlspecialchars($name); ?>">
+                    <option value="<?php echo htmlspecialchars($name); ?>" 
+                            title="Prompt: <?php echo htmlspecialchars(is_array($saved_prompt) ? $saved_prompt['prompt'] : $saved_prompt); ?>&#13;Negative: <?php echo htmlspecialchars(is_array($saved_prompt) ? $saved_prompt['negative_prompt'] : ''); ?>">
                         <?php echo htmlspecialchars($name); ?>
                     </option>
                 <?php endforeach; ?>
@@ -273,6 +298,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="form-group">
             <label for="prompt">Enter your prompt (including LORA syntax if needed):</label><br>
             <textarea name="prompt" id="prompt"><?php echo htmlspecialchars($prompt); ?></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="negative_prompt">Enter your negative prompt (things to avoid in the image):</label><br>
+            <textarea name="negative_prompt" id="negative_prompt"><?php echo htmlspecialchars($negative_prompt); ?></textarea>
         </div>
 
         <div class="form-group">
@@ -319,36 +349,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="text" name="prompt_name" id="prompt_name" required>
             </div>
             <input type="hidden" name="prompt" value="<?php echo htmlspecialchars($prompt); ?>">
+            <input type="hidden" name="negative_prompt" value="<?php echo htmlspecialchars($negative_prompt); ?>">
             <input type="submit" name="save_prompt" value="Save Prompt">
         </form>
     </div>
 
-	<?php if (!empty($generated_image)): ?>
-	<div class="result">
-	    <h2>Generated Image:</h2>
-	    <img width="250px" src="<?php echo htmlspecialchars($generated_image); ?>" alt="Generated image"/>
-	    <br/>
-	    <a download href="<?php echo htmlspecialchars($generated_image); ?>"> Download Generated Image </a>
-	    <?php if (isset($size_info)): ?>
-	    <div class="size-info">
-		<p>
-		    Original size: <?php echo $size_info['original']; ?> KB<br>
-		    Converted size: <?php echo $size_info['converted']; ?> KB<br>
-		    Size reduction: <?php echo $size_info['reduction']; ?>%
-		</p>
-	    </div>
-	    <?php endif; ?>
-	    <div class="parameters">
-		<strong>Parameters used:</strong><br>
-		Prompt: <?php echo htmlspecialchars($prompt); ?><br>
-		Processed Prompt: <?php echo htmlspecialchars($processed_prompt); ?><br>
-		Size: <?php echo $width; ?>x<?php echo $height; ?><br>
-		Steps: <?php echo $steps; ?><br>
-		CFG Scale: <?php echo $cfg_scale; ?><br>
-		Sampler: <?php echo htmlspecialchars($sampler); ?>
-	    </div>
-	</div>
-	<?php endif; ?>
+    <?php if (!empty($generated_image)): ?>
+    <div class="result">
+        <h2>Generated Image:</h2>
+        <img width="250px" src="<?php echo htmlspecialchars($generated_image); ?>" alt="Generated image"/>
+        <br/>
+        <a download href="<?php echo htmlspecialchars($generated_image); ?>">Download Generated Image</a>
+        <?php if (isset($size_info)): ?>
+        <div class="size-info">
+            <p>
+                Original size: <?php echo $size_info['original']; ?> KB<br>
+                Converted size: <?php echo $size_info['converted']; ?> KB<br>
+                Size reduction: <?php echo $size_info['reduction']; ?>%
+            </p>
+        </div>
+        <?php endif; ?>
+        <div class="parameters">
+            <strong>Parameters used:</strong><br>
+            Prompt: <?php echo htmlspecialchars($prompt); ?><br>
+            Negative Prompt: <?php echo htmlspecialchars($negative_prompt); ?><br>
+            Processed Prompt: <?php echo htmlspecialchars($processed_prompt); ?><br>
+            Size: <?php echo $width; ?>x<?php echo $height; ?><br>
+            Steps: <?php echo $steps; ?><br>
+            CFG Scale: <?php echo $cfg_scale; ?><br>
+            Sampler: <?php echo htmlspecialchars($sampler); ?>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <?php if (!empty($response)): ?>
     <div class="result">
@@ -358,4 +390,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php endif; ?>
 </body>
 </html>
-
