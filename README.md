@@ -1,5 +1,9 @@
 # Legacy Stable Diffusion WebUI
 
+
+![phpsd-logo-256](https://github.com/user-attachments/assets/9ca5934f-97e2-4885-bf06-a93dcfc393a6)
+
+
 A minimalistic, JavaScript-free web interface, front-end and processing server for Stable Diffusion, designed specifically for being accessed by legacy systems and browsers as clients. This interface relies on the API from AUTOMATIC1111's Stable Diffusion WebUI.
 
 ## Features
@@ -67,10 +71,11 @@ Example:
 ### Running on Windows NT 4.0 With IE 4
 ![Screenshot 2024-12-14 142743](https://github.com/user-attachments/assets/838095cb-0af7-4c6e-a140-78e8f7c65691)
 
-
-
-### Running on Firefox ESR 115
+### Running on Debian 12 With Firefox ESR 115
 ![Screenshot 2024-12-14 143036](https://github.com/user-attachments/assets/9745d00f-57cc-4788-a17d-43782d7e6fa3)
+
+### Running on Mac OS 9 With Classilla
+![screenshot2](https://github.com/user-attachments/assets/5284613c-9060-49d4-aed6-5d7fa1d041d3)
 
 
 ## Contributing
