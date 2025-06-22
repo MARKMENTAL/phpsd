@@ -1,92 +1,179 @@
-# Legacy Stable Diffusion WebUI
-
+# Legacy Stable Diffusion WebUI — Summer Update ☀️
 
 ![phpsd-logo-256](https://github.com/user-attachments/assets/9ca5934f-97e2-4885-bf06-a93dcfc393a6)
 
+A minimalistic, **JavaScript-free** web interface for Stable Diffusion, designed for compatibility with **legacy web browsers** like Internet Explorer 4, Netscape 4.x, and even Classilla on Mac OS 9.  
+Built for long-term access to AI image generation using the AUTOMATIC1111 API — from modern GPUs to vintage clients.
 
-A minimalistic, JavaScript-free web interface, front-end and processing server for Stable Diffusion, designed specifically for being accessed by legacy systems and browsers as clients. This interface relies on the API from AUTOMATIC1111's Stable Diffusion WebUI.
+---
 
-## Features
-- No JavaScript dependencies
-- Lightweight and fast loading
-- Support for LORA models using square bracket syntax
-- Image optimization with automatic PNG to JPG conversion
-- Prompt saving and loading functionality
-- Full configurability of key generation parameters:
-  - Image dimensions
-  - Sampling steps
-  - CFG Scale
-  - Choice of sampling methods
-  - Negative prompt support (1-19-2025 Update)
-  - Optimized default parameters for better quality images by default (1-19-2025 Update)
+## 🆕 Summer 2025 Update Highlights
 
-## Browser Compatibility
+- 🗂 **File structure cleanup** – Generation, prompt saving, and UI now fully separated for better maintainability.
+- ⏳ **True loading screen** – `loading.php` now displays a loading message before generation starts.
+- 💾 **"Save Prompt" moved to result page** – Save your prompt right after generation from `result.php`.
+- 📉 **Improved compression** – Lowered ImageMagick quality to 75 (from 85) for **90–93% file size reduction**.
+- ✅ **Default sampler set to `Euler a`**, which works especially well with **Illustrious XL** (the recommended model).
+- 🧼 Overall code quality and parameter consistency improved.
 
-- `index.php`: Tested working on IE4+, Netscape 4.x and above browsers (HTML 4 compliant)
+---
 
-## Requirements
+## 🔧 Features
 
-- Linux server with a suitable GPU; running a model in AUTOMATIC1111's Stable Diffusion WebUI https://github.com/AUTOMATIC1111/stable-diffusion-webui with API access (image generation back-end)
-- Externally accessible Linux server running PHP 8+ to run the PHP front-end (Tested on frankenphp running on Debian 12, should also run with traditional PHP setups with apache/nginx, can run on the same server as the back-end)
-- Web server (Apache, nginx, etc.)
-- ImageMagick for image optimization
-- Curl
-- Client machine to access the front-end via web browser
+- No JavaScript — 100% HTML 4.01 and PHP
+- Ultra-lightweight for slow or vintage clients
+- LORA model support via `[name:weight]` syntax
+- Prompt saving and loading via `saved-prompts.json`
+- Server-side PNG ➜ JPG conversion with ImageMagick
+- Compatible with AUTOMATIC1111 Stable Diffusion WebUI
+- Configurable generation settings:
+  - Image size
+  - CFG scale
+  - Steps
+  - Sampler method
+  - Negative prompt support
 
+---
 
-## Installation
+## 🌐 Browser Compatibility
 
-1. Ensure you have AUTOMATIC1111's Stable Diffusion WebUI running with the `--api` flag
-2. Install PHP and ImageMagick on your system
-3. Copy both `index.php` to your web server directory
-4. Ensure the directory is writable by the web server for saved prompts and generated images
-5. Access through your web browser:
-   - Use `index.php` for HTML 4.01+ compatible browsers
+Tested on:
 
-## Usage
+- ✅ Internet Explorer 4–6 (Windows 95–2000)
+- ✅ Netscape 4.x
+- ✅ Classilla (Mac OS 9)
+- ✅ Firefox ESR 102+ (modern systems)
 
-1. Enter your prompt and negative prompt if applicable in the text area
-2. Configure generation parameters as needed
-3. Click "Generate Image" to create your image
-4. Save frequently used prompts server-side using the "Save Prompt" feature
-5. Load saved prompts from the dropdown menu
+---
 
-## LORA Usage
+## 📦 Requirements
 
-To use LORA models, include them in your prompt using square brackets:
-```[lora-name:weight]```
+- **Back-end:**  
+  AUTOMATIC1111 Stable Diffusion WebUI running with `--api`  
+  https://github.com/AUTOMATIC1111/stable-diffusion-webui
+
+- **Front-end Server:**  
+  Linux server with:
+  - PHP 8+
+  - ImageMagick
+  - cURL
+  - Any web server (Apache, nginx, or FrankenPHP)
+
+- **Client:**  
+  Any browser capable of submitting forms and rendering HTML 4.01  
+  (Yes, it really works on Windows NT 4.0)
+
+---
+
+## 🧪 Installation
+
+1. Start AUTOMATIC1111's WebUI with `--api`
+2. Install PHP and ImageMagick on your web server
+3. Place `index.php`, `loading.php`, `generate.php`, and `result.php` in your web directory
+4. Ensure write permissions for:
+   - `saved-prompts.json`
+   - Your web server's root directory containing the phpsd files, this is where images will be stored
+5. Access `index.php` from a browser and start generating!
+
+---
+
+## 🧭 Usage Guide
+
+1. Open `index.php`
+2. Type your prompt and negative prompt (optional)
+3. Adjust generation parameters
+4. Submit ➜ loading screen ➜ image result
+5. Save your favorite prompts directly from `result.php`
+
+---
+
+## 🧠 LORA Support
+
+Use the syntax:
+
+```text
+[lora-name:weight]
+````
 
 Example:
-```a beautiful landscape by [my-artist-lora:0.8]```
 
-## Notes
+```text
+a high-detail wizard portrait [wizard-style:0.8]
+```
 
-- Images are automatically optimized and converted from PNG to JPG for faster loading
-- The interface works without any client-side scripting
-- All processing is done server-side
-- Compatible with browsers from the late 1990s to now
+Weight values typically range from `0.1` to `1.0`
 
-## Screenshots
+---
 
-### Running on Windows NT 4.0 With IE 4
-![Screenshot 2024-12-14 142743](https://github.com/user-attachments/assets/838095cb-0af7-4c6e-a140-78e8f7c65691)
+## 📸 Image Processing Notes
 
-### Running on Debian 12 With Firefox ESR 115
-![Screenshot 2024-12-14 143036](https://github.com/user-attachments/assets/9745d00f-57cc-4788-a17d-43782d7e6fa3)
+* Generated PNGs are automatically converted to optimized JPGs
+* ImageMagick runs with:
 
-### Running on Mac OS 9 With Classilla
+  ```
+  -quality 75 -strip -interlace Plane -gaussian-blur 0.05 -sampling-factor 4:2:0
+  ```
+* Resulting file sizes reduced by \~90–93%, ideal for slow connections and legacy hardware
+
+---
+
+
+## 🧭 System Architecture
+
+Below is a flowchart diagram representing the separation of concerns between the legacy client and the backend server during prompt submission and image generation.
+
+![Screenshot 2025-06-22 182155](https://github.com/user-attachments/assets/28e9aa66-42d8-4820-bfd9-6b4b23571188)
+
+---
+
+## 🖥️ Screenshots
+
+### Running on Windows 2000 SP2 with IE 5 — Illustrious XL Output (June 22, 2025 Summer Update)
+![Gura sample](https://github.com/user-attachments/assets/afa2366b-1760-47da-a7d6-12465b1ba076)
+
+This image was generated using `Euler a` sampler and the Illustrious XL model, processed entirely through the `phpsd` legacy frontend. Displayed here in Internet Explorer 5 on Windows 2000 SP2.
+
+
+### Running on Mac OS 9 + Classilla
+
 ![screenshot2](https://github.com/user-attachments/assets/5284613c-9060-49d4-aed6-5d7fa1d041d3)
 
+### Firefox ESR 115 on Debian 12
 
-## Contributing
+![Screenshot 2024-12-14 143036](https://github.com/user-attachments/assets/9745d00f-57cc-4788-a17d-43782d7e6fa3)
 
-Contributions are welcome! Please feel free to submit a Pull Request or fork.
+---
 
-## License
+## 🖼️ Legacy Wallpaper Output
 
-This project is MIT licensed.
+Don’t just generate — **decorate**.
 
-## Credits
+All generated images are:
+- Optimized for ultra-low size (JPG @ quality 75)
+- CRT-safe resolution options
+- Perfect for Retro PC wallpapers
 
-Built to work with AUTOMATIC1111's Stable Diffusion WebUI API:
-https://github.com/AUTOMATIC1111/stable-diffusion-webui
+Whether you’re browsing from Classilla or setting your ThinkPad T21’s background, `phpsd` delivers.
+
+
+## 🤝 Contributing
+
+Pull requests, forks, and retro tweaks welcome!
+Feel free to adapt the UI for even older setups or customize layouts per browser profile.
+
+---
+
+## 📜 License
+
+MIT License
+
+---
+
+## 🧠 Credits
+
+* Front-end & optimization by markmental
+* Powered by [AUTOMATIC1111’s Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+
+---
+
+
