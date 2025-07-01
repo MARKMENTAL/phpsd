@@ -48,6 +48,16 @@ if (!$result) {
 }
 
 $decoded = json_decode($result, true);
+$seed = $decoded['info'] ?? '';
+if (is_string($seed)) {
+    // Try to parse seed from info block
+    if (preg_match('/"seed":\s*(\d+)/', $seed, $matches)) {
+        $seed = $matches[1];
+    } else {
+        $seed = 'unknown';
+    }
+}
+
 if (!isset($decoded['images'][0])) {
     die("Error: No image returned.");
 }
@@ -62,7 +72,16 @@ file_put_contents($temp_png, $image_data);
 // Convert PNG to JPG with ImageMagick
 $generated_image = 'generated_' . time() . '_' . bin2hex(random_bytes(8)) . '.jpg';
 $quality = 75;
-$cmd = "convert \"$temp_png\" -strip -interlace Plane -gaussian-blur 0.05 -quality $quality -sampling-factor 4:2:0 \"$generated_image\" 2>&1";
+#$cmd = "convert \"$temp_png\" -strip -interlace Plane -gaussian-blur 0.05 -quality $quality -sampling-factor 4:2:0 \"$generated_image\" 2>&1";
+#
+$metadata_comment = escapeshellarg(
+    "Prompt: $prompt\n" .
+    "Negative prompt: $negative_prompt\n" .
+    "Steps: $steps, Sampler: $sampler, CFG scale: $cfg_scale, Size: {$width}x{$height}, Seed: $seed\n"
+);
+
+$cmd = "convert \"$temp_png\" -strip -interlace Plane -gaussian-blur 0.05 -quality $quality -sampling-factor 4:2:0 -set comment $metadata_comment \"$generated_image\" 2>&1";
+
 exec($cmd, $output, $returnVar);
 
 // Get image size info
