@@ -122,14 +122,14 @@ Weight values typically range from `0.1` to `1.0`
 
 Below is a flowchart diagram representing the separation of concerns between the legacy client and the backend server during prompt submission and image generation.
 
-![Screenshot 2025-06-22 182155](https://github.com/user-attachments/assets/28e9aa66-42d8-4820-bfd9-6b4b23571188)
+![Screenshot 2025-06-22 182155](https://github.com/user-attachments/assets/810aa3d3-c13d-4aeb-9a10-121e501d89b4)
 
 ---
 
 ## 🖥️ Screenshots
 
 ### Running on Windows 2000 SP2 with IE 5 — Illustrious XL Output (June 22, 2025 Summer Update)
-![Gura sample](https://github.com/user-attachments/assets/afa2366b-1760-47da-a7d6-12465b1ba076)
+![Screenshot 2025-06-22 174921](https://github.com/user-attachments/assets/0224a7ab-fc9a-4aeb-bfc1-5a48d476041e)
 
 This image was generated using `Euler a` sampler and the Illustrious XL model, processed entirely through the `phpsd` legacy frontend. Displayed here in Internet Explorer 5 on Windows 2000 SP2.
 
@@ -163,6 +163,7 @@ Feel free to adapt the UI for even older setups or customize layouts per browser
 
 ---
 
+
 ## 📜 License
 
 MIT License
@@ -175,5 +176,6 @@ MIT License
 * Powered by [AUTOMATIC1111’s Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
 
 ---
+
 
 
